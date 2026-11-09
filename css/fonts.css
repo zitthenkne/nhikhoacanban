@@ -1,0 +1,5 @@
+/* Inter + Nunito: dùng bản đã cài trên máy (local) — 0 byte tải mạng.
+   Máy chưa cài → rơi về Segoe UI / SF / Roboto (cùng họ sans nét dứt khoát).
+   Muốn nhúng woff2: đặt file vào css/f/ và thêm url() — tốn ~40 KB/weight, vượt ngân sách 65 KB gzip. */
+@font-face { font-family: 'Inter'; font-weight: 400 900; font-display: swap; src: local('Inter Variable'), local('Inter'), local('Inter Regular'); }
+@font-face { font-family: 'Nunito'; font-weight: 400 900; font-display: swap; src: local('Nunito Variable'), local('Nunito'), local('Nunito Regular'); }

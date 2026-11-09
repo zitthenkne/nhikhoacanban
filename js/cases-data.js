@@ -1,0 +1,65 @@
+/* cases-data.js — 5 ca lâm sàng 4 bước (POJO). Mỗi bước: 1 câu, 3 lựa chọn, a = đáp án, why = giải thích chung. */
+'use strict';
+(() => {
+const ZS = window.ZS = window.ZS || {};
+ZS.CASES = [
+{ id: 'ca-tiem', ic: '💉', title: 'Bé 2 tháng đến tiêm, hơi sốt', beat: 'tc-vx-song-corticoid',
+  who: 'Bé Na, nữ, 2 tháng, 5,2 kg', why: 'Mẹ đưa đi tiêm mũi 2 tháng; bé ấm người, phân sệt 2 lần/ngày.',
+  vit: [['Nhiệt độ nách', '37,8°C'], ['Mạch', '140 l/p'], ['Nhịp thở', '42 l/p'], ['SpO₂', '99%']],
+  steps: [
+    { t: 'Hỏi bệnh', q: 'Câu hỏi sàng lọc nào **quan trọng nhất** trước tiêm?', opts: ['Bé ăn dặm chưa?', 'Lần tiêm trước có phản ứng nặng / phản vệ không?', 'Nhà có nuôi thú cưng không?'], a: 1,
+      why: 'Tiền sử phản vệ với liều trước là chống chỉ định tuyệt đối với vắc xin đó.' },
+    { t: 'Khám – thăm dò', q: 'Nhiệt độ nách 37,8°C, bé bú tốt, tỉnh. Cần làm gì thêm?', opts: ['Xét nghiệm công thức máu, CRP trước khi tiêm', 'Khám toàn thân, không cần xét nghiệm', 'Chụp X-quang phổi'], a: 1,
+      why: 'Sàng lọc tiêm chủng dựa trên hỏi và khám lâm sàng; không cần xét nghiệm thường quy.' },
+    { t: 'Đối chiếu tiêu chuẩn', q: 'Theo hướng dẫn sàng lọc, 37,8°C và phân sệt nhẹ:', opts: ['Phải hoãn vì có sốt', 'Không phải lý do hoãn (hoãn khi sốt ≥ 38°C hoặc ≤ 35,5°C)', 'Hoãn vì tiêu chảy'], a: 1,
+      why: 'Ngưỡng tạm hoãn: sốt **≥ 38°C** hoặc hạ thân nhiệt **≤ 35,5°C** (nhiệt độ nách).' },
+    { t: 'Quyết định', q: 'Xử trí hôm nay?', opts: ['Tiêm 5in1/6in1 + uống vắc xin Rota, theo dõi 30 phút', 'Hẹn 1 tuần sau', 'Chỉ tiêm, bỏ Rota vì phân sệt'], a: 0,
+      why: 'Đủ điều kiện tiêm; tiêu chảy nhẹ không chống chỉ định Rota. Luôn theo dõi 30 phút sau tiêm.' },
+  ] },
+{ id: 'ca-sinh-non', ic: '📈', title: 'Bé 15 tháng sinh non chưa biết đi', beat: 'beat-5-tuoi-hieu-chinh-sinh-non',
+  who: 'Bé Bin, nam, 15 tháng, 9 kg', why: 'Mẹ lo vì bé chưa tự đi. Sinh non 30 tuần.',
+  vit: [['Cân nặng', '9 kg'], ['Chiều dài', '74 cm'], ['Vòng đầu', '45 cm'], ['Tuổi thai lúc sinh', '30 tuần']],
+  steps: [
+    { t: 'Hỏi bệnh', q: 'Thông tin nào quyết định cách đánh giá?', opts: ['Tuổi thai lúc sinh', 'Cân nặng của mẹ', 'Thứ tự con trong gia đình'], a: 0,
+      why: 'Sinh non < 37 tuần → dùng tuổi hiệu chỉnh đến 24 tháng.' },
+    { t: 'Tính toán', q: 'Tuổi hiệu chỉnh của bé?', opts: ['15 tháng', '≈ 12,7 tháng', '≈ 10 tháng'], a: 1,
+      why: '40 − 30 = 10 tuần ≈ 2,3 tháng → 15 − 2,3 ≈ **12,7 tháng**.' },
+    { t: 'Đối chiếu tiêu chuẩn', q: 'Theo tuổi hiệu chỉnh, chưa tự đi là:', opts: ['Cờ đỏ vận động thô', 'Còn trong giới hạn (cờ đỏ khi 18 tháng chưa đi)', 'Bại não chắc chắn'], a: 1,
+      why: 'Cờ đỏ vận động: **18 tháng chưa tự đi**. Bé HC 12,7 tháng — đang trong cửa sổ bình thường.' },
+    { t: 'Quyết định', q: 'Hướng xử trí?', opts: ['Chụp MRI não ngay', 'Trấn an, hướng dẫn kích thích vận động, tái khám theo dõi mốc', 'Chuyển vật lý trị liệu cấp'], a: 1,
+      why: 'Theo dõi theo tuổi hiệu chỉnh; đánh giá lại nếu đến 18 tháng (HC) chưa đi hoặc có mất kỹ năng.' },
+  ] },
+{ id: 'ca-sot-giat', ic: '🔥', title: 'Bé 18 tháng co giật khi sốt', beat: 'sc-sot-giat',
+  who: 'Bé Hoàng, nam, 18 tháng, 11 kg', why: 'Co giật toàn thân 3 phút khi đang sốt cao, đã tự hết.',
+  vit: [['Nhiệt độ', '39,5°C'], ['Mạch', '145 l/p'], ['SpO₂', '96%'], ['Glasgow sau cơn', '15']],
+  steps: [
+    { t: 'Hỏi bệnh', q: 'Đặc điểm nào cần hỏi **đầu tiên** để phân loại cơn?', opts: ['Thời gian cơn, toàn thể hay khu trú, tái phát trong 24 giờ', 'Bé có thích chơi điện thoại không', 'Tiền sử dị ứng thức ăn'], a: 0,
+      why: 'Ba tiêu chí phân loại sốt co giật đơn giản / phức tạp.' },
+    { t: 'Khám', q: 'Sau cơn bé tỉnh hoàn toàn. Khám gì bắt buộc?', opts: ['Dấu màng não, dấu thần kinh khu trú, tìm ổ nhiễm trùng', 'Chỉ đo nhiệt độ', 'Soi đáy mắt thường quy'], a: 0,
+      why: 'Loại trừ nhiễm trùng TKTW và tìm nguyên nhân gây sốt.' },
+    { t: 'Đối chiếu tiêu chuẩn', q: 'Toàn thể, 3 phút, chưa tái phát, khám bình thường → ', opts: ['Sốt co giật đơn giản', 'Sốt co giật phức tạp', 'Động kinh'], a: 0, why: 'Toàn thể + < 15 phút + không tái phát 24 giờ.' },
+    { t: 'Quyết định', q: 'Có chọc dò tủy sống không?', opts: ['Có — mọi trẻ co giật kèm sốt', 'Không — > 12 tháng, đơn giản, không dấu màng não', 'Có — vì sốt 39,5°C'], a: 1,
+      why: 'Chọc dò khi có dấu nhiễm trùng TKTW, < 12 tháng chưa đủ Hib/phế cầu, > 12 tháng co giật phức tạp, hoặc đã dùng kháng sinh TM.' },
+  ] },
+{ id: 'ca-phan-ve', ic: '⚡', title: 'Bé thở rít sau tiêm 10 phút', beat: 'sc-phan-ve-adrenaline',
+  who: 'Bé Tuấn, nam, 4 tuổi, 16 kg', why: '10 phút sau tiêm: nổi mề đay toàn thân, khàn tiếng, thở rít.',
+  vit: [['Mạch', '160 l/p'], ['Huyết áp', '80/50 mmHg'], ['Nhịp thở', '40 l/p'], ['SpO₂', '91%']],
+  steps: [
+    { t: 'Nhận diện', q: 'Mức độ phản vệ?', opts: ['Độ I (chỉ da – niêm)', 'Độ II (≥ 2 cơ quan: da + hô hấp)', 'Không phải phản vệ'], a: 1, why: 'Mề đay + thở rít = biểu hiện ≥ 2 cơ quan → độ II.' },
+    { t: 'Thuốc đầu tay', q: 'Làm gì **ngay**?', opts: ['Methylprednisolon TM', 'Adrenaline 1:1000 0,16 mL tiêm bắp đùi', 'Diphenhydramin uống'], a: 1,
+      why: '0,01 mL/kg × 16 kg = 0,16 mL, tiêm bắp 1/3 giữa mặt trước ngoài đùi.' },
+    { t: 'Hỗ trợ', q: 'Đồng thời:', opts: ['Cho bé ngồi dậy uống nước', 'Nằm đầu thấp, nâng chân, thở oxy, gọi hỗ trợ', 'Chuyển viện ngay, chưa xử trí'], a: 1, why: 'Tư thế chống sốc + oxy + huy động ê-kíp.' },
+    { t: 'Theo dõi', q: 'Sau 5 phút chưa cải thiện:', opts: ['Tiêm nhắc Adrenaline bắp (mỗi 3–5 phút), truyền dịch 20 mL/kg', 'Tiêm TM trực tiếp Adrenaline 1:1000', 'Chờ corticoid phát huy tác dụng'], a: 0,
+      why: 'Nhắc liều tiêm bắp; TM chỉ là truyền liên tục dung dịch pha loãng có monitor.' },
+  ] },
+{ id: 'ca-tieu-chay', ic: '💧', title: 'Bé 10 tháng tiêu lỏng 8 lần', beat: 'beat-15-oresol-osmosis',
+  who: 'Bé Mai, nữ, 10 tháng, 8 kg', why: 'Tiêu lỏng 8 lần/ngày × 2 ngày, không máu.',
+  vit: [['Tri giác', 'Quấy, kích thích'], ['Mắt', 'Trũng'], ['Uống', 'Háo hức'], ['Véo da', 'Mất chậm (< 2 giây)']],
+  steps: [
+    { t: 'Đánh giá', q: 'Phân loại mất nước (IMCI)?', opts: ['Không mất nước', 'Có mất nước', 'Mất nước nặng'], a: 1, why: '≥ 2 dấu: kích thích, mắt trũng, uống háo hức, véo da mất chậm.' },
+    { t: 'Phác đồ', q: 'Bù dịch thế nào?', opts: ['Phác đồ A tại nhà', 'Phác đồ B: Oresol 75 mL/kg trong 4 giờ = 600 mL', 'Truyền TM phác đồ C'], a: 1, why: '75 mL/kg × 8 kg = 600 mL trong 4 giờ tại cơ sở y tế.' },
+    { t: 'Kèm theo', q: 'Bổ sung gì?', opts: ['Kháng sinh thường quy', 'Kẽm 20 mg/ngày × 10–14 ngày', 'Thuốc cầm tiêu chảy'], a: 1, why: 'Kẽm (≥ 6 tháng: 20 mg/ngày) 10–14 ngày; không kháng sinh/cầm tiêu chảy thường quy.' },
+    { t: 'Dặn dò', q: 'Lời dặn đúng khi pha Oresol?', opts: ['Thêm đường cho bé dễ uống', 'Pha nguyên gói với đúng lượng nước, dùng trong 24 giờ', 'Pha nửa gói cho đỡ mặn'], a: 1, why: 'Giữ đúng 245 mOsm/L; thêm đường gây tiêu chảy thẩm thấu.' },
+  ] },
+];
+})();

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi" data-theme="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fff8fb">
+<meta name="description" content="Sổ tay tương tác Nhi khoa cơ bản Y4 — 16 trang cơ chế, 18 câu tinh hoa, ca lâm sàng, OSCE.">
+<title>Sổ Tay Nhi Cơ Bản</title>
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/plus.css">
+<script>try{var t=JSON.parse(localStorage.getItem('nhi-cb-v1')||'{}').theme||(matchMedia('(prefers-color-scheme: dark)').matches?'night':'day');document.documentElement.dataset.theme=t}catch(e){}</script>
+<script defer src="js/scenes-core.js"></script>
+<script defer src="js/beats-coban.js"></script>
+<script defer src="js/beats-coban-2.js"></script>
+<script defer src="js/quiz-data.js"></script>
+<script defer src="js/crash-data.js"></script>
+<script defer src="js/cases-data.js"></script>
+<script defer src="js/course.js"></script>
+<script defer src="js/myths.js"></script>
+<script defer src="js/lab.js"></script>
+<script defer src="js/practice.js"></script>
+<script defer src="js/steth.js"></script>
+<script defer src="js/plus.js"></script>
+<script defer src="js/app.js"></script>
+</head>
+<body>
+<header id="top">
+  <a class="brand" href="#/">🩺 <b>Nhi Cơ Bản</b><small>Y4 · ĐHYD TPHCM</small></a>
+  <nav id="nav">
+    <a href="#/">Bản đồ</a>
+    <a href="#/q/0">🧠 18 câu</a>
+    <a href="#/ca">Ca bệnh</a>
+    <a href="#/osce">🩺 OSCE</a>
+    <a href="#/bay">Bẫy thi</a>
+    <a href="#/nghe">🎧 Ống nghe</a>
+    <a href="#/on">🗂 Ôn tập</a>
+    <a href="#/tra">📌 Tra nhanh</a>
+  </nav>
+  <button class="ib" id="bMute" aria-label="Bật/tắt âm thanh">🔊</button>
+  <button class="ib" id="bTheme" aria-label="Chế độ đêm trực">🌙</button>
+  <button class="ib" id="bMenu" aria-label="Mở menu">☰</button>
+</header>
+<main id="stage" tabindex="-1"></main>
+<footer id="botbar">
+  <button id="bPrev" data-go="-1">← Trước</button>
+  <div id="prog"><span id="crumb"></span><span class="trk"><i id="bar"></i></span></div>
+  <button id="bNext" data-go="1">Tiếp →</button>
+</footer>
+<button id="fab" aria-label="Mở bảng cấp cứu">⚡ CẤP CỨU</button>
+<aside id="drawer" aria-hidden="true">
+  <div class="dh"><b id="dTitle"></b><button class="ib" id="dClose" aria-label="Đóng">✕</button></div>
+  <div id="dBody"></div>
+</aside>
+<section id="crash" hidden aria-label="Bảng liều cấp cứu">
+  <div class="ch"><b>⚡ CẤP CỨU NHI</b><button class="ib" id="cClose" aria-label="Đóng">✕</button></div>
+  <div id="cBody"></div>
+</section>
+<noscript>Cần bật JavaScript để dùng sổ tay tương tác.</noscript>
+</body>
+</html>

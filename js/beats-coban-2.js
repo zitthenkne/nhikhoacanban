@@ -21,9 +21,12 @@ const spikes = (base, x) => base > -55 ? Math.min(30, 80 * Math.exp(-Math.pow((x
 // Màn 4.3 — Adrenaline 1:1000 = 1 mg/mL → 0,01 mL/kg, tối đa 0,3 mL (≤ 30 kg) / 0,5 mL
 const vol11 = v => Math.min(.01 * v.w, v.w <= 30 ? .3 : .5), py11 = v => 300 - 240 * cl(v.pv), im = v => cl(1 - Math.abs(v.route - 1)) * cl(1 - Math.abs(v.pv - vol11(v)) * 20);
 
-// Màn 5.2 — Fallot: phân chia cung lượng thất phải giữa phễu ĐMP (Rr) và lỗ TLT → ĐMC (Rs, tăng khi gối – ngực)
-const tof = v => { const s = v.ph / 100, Rr = 1 + 9 * s * s, Rs = 1 + 1.5 * v.sq, fp = Rs / (Rs + .5 * Rr); return { s, fp, sat: fp * .98 + (1 - fp) * .55 }; };
-const murmur = v => tof(v).fp > .45 ? 'to, dài' : tof(v).fp > .25 ? 'nhỏ, ngắn lại' : 'gần mất!';
+// Màn 5.2 — Fallot: TLT rộng → 2 thất cùng áp; cung lượng chia theo kháng lực 2 lối: phễu + mạch phổi (Rr + 0,15) vs hệ thống Rs.
+// q = Qp/Qs. q < 1: shunt P → T, SaO₂ = 0,98q/(0,3 + 0,7q) (trộn với SvO₂ = 0,7·SaO₂). q ≥ 1: Fallot hồng, shunt T → P, SaO₂ 98%.
+const tof = v => { const s = v.ph / 100, Rr = .6 + 5.4 * s * s, Rs = 1 + .6 * cl(v.sq), q = Rs / (Rr + .15), fp = q / (1 + q),
+  sat = q >= 1 ? .98 : .98 * q / (.3 + .7 * q), sv = .7 * sat;
+  return { s, q, fp, sat, sv, m: Math.min(1, (fp / .571) ** 2), pa: q >= 1 ? (sv + .98 * (q - 1)) / q : sv }; };
+const murmur = v => tof(v).m > .35 ? 'to, dài' : tof(v).m > .12 ? 'nhỏ, ngắn lại' : 'gần mất!';
 // Màn 6.1 — Moro: t 0 nằm yên · 1 dang–duỗi · 2 khép ôm; cond 0 bình thường · 1 gãy đòn P · 2 Erb P (trái ảnh = bên phải bé)
 const moroU = v => K(v.t, [125, 195, 140]), moroF = v => K(v.t, [20, 200, -10]), spr = v => K(v.t, [0, 1, .2]);
 const hy = v => 84 - 6 * K(v.t, [0, 1, 0]); // đầu bé hơi ngửa khi thả đầu
@@ -202,29 +205,33 @@ ZS.BEATS = (ZS.BEATS || []).concat([
 },
 {
   id: 'beat-13-ductus-fallot', n: 13, title: 'Fallot: cơn tím & tư thế gối – ngực', mode: 'thu',
-  ask: { q: 'Vì sao tư thế **gối – ngực** (ngồi xổm) cắt được cơn tím thiếu oxy trong tứ chứng Fallot?',
-    opts: ['Giúp trẻ bớt khóc, đỡ tốn oxy', 'Gập ĐM đùi → tăng kháng lực ngoại biên → giảm shunt phải – trái qua lỗ TLT, máu dồn lên phổi'], a: 1,
-    why: 'Máu thất phải chọn đường **ít trở kháng**: phễu ĐMP hẹp hay ĐMC qua lỗ thông liên thất. Tăng kháng lực hệ thống thì máu quay về phổi.' },
+  ask: { q: 'Kích xúc làm **phễu ĐMP co thắt** dần đến 100%. **Âm thổi** ở ổ van ĐMP sẽ thế nào?',
+    opts: ['To hơn, vì chỗ hẹp càng hẹp', 'Nhỏ dần rồi gần mất, vì ít máu qua phễu', 'Không đổi, vì âm thổi sinh ra ở lỗ TLT'], a: 1,
+    why: 'Âm thổi Fallot do **máu qua phễu hẹp**; TLT rộng không gây thổi. Phễu càng co, máu càng rẽ sang **ĐMC** → ít máu qua phễu → thổi nhỏ dần rồi mất.' },
   ui: {
-    model: 'organHydraulic', init: { ph: 40, sq: 0 },
-    ids: { rvot: 'rvot-stenosis', svr: 'femoral-kink', phoi: 'pulm-rescue-flow' },
-    murmur: v => tof(v).fp, // độ to âm thổi phễu ∝ dòng máu qua phễu
-    calc: v => { const t = tof(v); return { hr: 110 + 50 * (1 - t.fp), lung: .6 + .4 * t.fp, rvot: t.s, vsd: 1, svr: v.sq, da: 0, fo: 0,
-      sat: { svc: .55, ivc: .55, ra: .55, rv: .55, pa: .55, la: .98, lv: t.sat, ao: t.sat },
-      flow: { pa: .3 + 1.4 * t.fp, lung: 1.4 * t.fp, vsd: (1 - t.fp) * 1.3, ao: 1.2, ivc: .8 } }; },
+    model: 'organHydraulic', tof: true, init: { ph: 40, sq: 0 },
+    ids: { rvot: 'rvot-stenosis', svr: 'femoral-kink', pvr: 'pulm-rescue-flow', vsd: 'vsd-shunt' },
+    murmur: v => tof(v).m, // độ to âm thổi phễu theo dòng máu qua phễu
+    calc: v => { const t = tof(v), lr = t.q >= 1; return { hr: 110 + 60 * (1 - t.sat), lung: .8 + .2 * t.fp, cal: cl(t.fp * 1.6), rvot: t.s, svr: v.sq, da: 0,
+      sat: { svc: t.sv, ivc: t.sv, ra: t.sv, rv: t.sv, pa: t.pa, la: .98, lv: .98, ao: t.sat, aoD: t.sat, pv: .98 },
+      flow: { pa: .2 + 1.3 * t.fp, lung: 1.6 * t.fp, vsd: lr ? -(t.q - 1) : (1 - t.q) * 1.3, ao: 1.2, body: 1, ivc: .8, svc: .6 } }; },
     ctl: [{ t: 'range', k: 'ph', label: 'Co thắt phễu ĐMP', min: 0, max: 100, step: 5, unit: '%', snaps: [50, 100], zones: [[0, 50, 'mint-d'], [50, 80, 'butter-d'], [80, 100, 'pink-d']] }, { t: 'toggle', k: 'sq', label: 'Tư thế', a: 'Nằm', b: 'Gối – ngực' }],
-    goal: s => s.ph >= 90 && s.sq === 1,
-    stamp: { id: 'con-tim', text: 'CƠN TÍM THIẾU OXY', sub: 'Âm thổi nhỏ lại / mất — cấp cứu', at: [104, 74], w: 200, when: v => tof(v).fp < .25 },
-    hud: v => [['SpO₂', Math.round(tof(v).sat * 100) + '%'], ['Âm thổi phễu', murmur(v)]],
+    // tay nắm chính: 2 hàm cơ phễu (kéo ngang); phụ: đầu gối bé (kéo lên = gập háng)
+    drag: [{ k: 'ph', box: [232, 186, 306, 252], r: [0, 100], step: 5 }, { k: 'sq', box: [396, 236, 548, 348], axis: 'y', r: [0, 1.15], f: x => Math.min(1, Math.round(x * 20) / 20) }],
+    goal: s => s.ph >= 90 && s.sq >= .9,
+    stamp: { id: 'con-tim', text: 'CƠN TÍM THIẾU OXY', sub: 'Âm thổi nhỏ lại / mất — cấp cứu', at: [104, 100], w: 200, when: v => tof(v).sat < .7 },
+    hudAt: [12, 296, 'start'],
+    hud: v => { const t = tof(v); return [['SpO₂', Math.round(t.sat * 100) + '%'], ['Thổi phễu', murmur(v)], ['Shunt TLT', t.q >= 1 ? 'T→P (hồng)' : 'P→T']]; },
   },
   chain: [
-    { t: 'Kích xúc (khóc, rặn) → **co thắt phễu ĐMP** → máu thất phải không lên được phổi.', hl: 'rvot-stenosis', when: v => v.ph >= 50 },
-    { t: 'Gối – ngực **gập ĐM đùi** → kháng lực hệ thống tăng, máu tĩnh mạch về tim tăng.', hl: 'femoral-kink', when: v => v.sq > .5 },
-    { t: 'Shunt phải → trái qua lỗ TLT giảm → máu **dồn lên phổi** lấy oxy.', hl: 'pulm-rescue-flow', when: v => v.sq > .5 },
+    { t: 'Kích xúc (khóc, rặn) → **co thắt phễu ĐMP** → lối lên phổi bị siết.', hl: 'rvot-stenosis', when: v => v.ph >= 50 },
+    { t: 'TLT rộng, 2 thất cùng áp → máu thất P rẽ sang **ĐMC cưỡi ngựa** (shunt P → T) → SpO₂ tụt, âm thổi nhỏ dần.', hl: 'vsd-shunt', when: v => v.ph >= 50 },
+    { t: 'Gối – ngực **gập ĐM đùi** ở nếp bẹn → kháng lực hệ thống tăng.', hl: 'femoral-kink', when: v => v.sq > .5 },
+    { t: 'Lối ĐMC khó đi hơn → máu **dồn lên phổi** lấy oxy, SpO₂ hồi lại.', hl: 'pulm-rescue-flow', when: v => v.sq > .5 },
   ],
   clin: 'Cơn tím: **gối – ngực**, thở oxy, an thần (morphin 0,1 mg/kg), chống toan, ức chế β (propranolol), thuốc co mạch tăng kháng lực ngoại biên.',
-  trap: 'Âm thổi Fallot do **hẹp phễu**: hẹp càng nặng âm thổi càng **nhỏ và ngắn**. Âm thổi **biến mất** trong cơn tím là dấu hiệu nguy kịch, không phải bệnh đỡ.',
-  pearl: 'Hai nhánh song song: tăng trở kháng nhánh hệ thống thì dòng chảy dồn về nhánh phổi.',
+  trap: '**Thuốc giãn mạch**, sốt, gắng sức làm **giảm** kháng lực hệ thống → máu càng rẽ sang ĐMC → cơn tím nặng hơn. Cùng cơ chế với gối – ngực, chỉ ngược chiều.',
+  pearl: 'Âm thổi **biến mất** trong cơn tím là dấu nguy kịch, không phải bệnh đỡ.',
   src: 'Nguồn: Tứ chứng Fallot (BM Nhi ĐHYD) — mục 5.5 cơn tím thiếu oxy, 8.1.1 xử trí cơn tím.',
 },
 {

@@ -56,7 +56,7 @@ ZS.QUIZ = [
   opts: ['Phenobarbital tiêm tĩnh mạch', 'Diazepam bơm hậu môn 0,5 mg/kg', 'Paracetamol đặt hậu môn rồi theo dõi', 'Nhét khăn vào miệng chống cắn lưỡi'], a: 1,
   why: ['Cần đường truyền; là thuốc hàng 2.', 'Chưa có ven: **Diazepam bơm hậu môn 0,2–0,5 mg/kg** (trẻ > 2 tuổi) hoặc **Midazolam** xịt mũi/ngậm má.', 'Hạ sốt không cắt cơn.', 'Nguy hiểm — tắc đường thở, gãy răng.'],
   exam: 'Câu tự soạn', bed: 'Cơn ≥ 5 phút là lệnh dùng benzodiazepine; nằm nghiêng an toàn.' },
-{ id: 'Q_TA_01', topic: 5, beat: 'beat-12-foramen-ovale', st: { t: 0 }, hl: 'fo-valve', q: 'Điều nào **đúng** về tuần hoàn – huyết học thai?',
+{ id: 'Q_TA_01', topic: 5, beat: 'beat-12-foramen-ovale', st: { b: 0, c: 0, pp: 0 }, hl: 'fo-valve', q: 'Điều nào **đúng** về tuần hoàn – huyết học thai?',
   opts: ['Hồng cầu nhân có mặt trong máu thai từ tuần 8', 'Tiểu cầu trưởng thành hình thái và chức năng từ tuần 37', 'Có thể khảo sát thiếu tiểu cầu từ tuần 12', 'Mẫu tiểu cầu hiện diện trong tủy xương từ tuần 8–10'], a: 0,
   why: ['Đúng: **hồng cầu nhân xuất hiện trong tuần hoàn từ tuần thứ 8** (chứa HbF).', 'Mốc không chính xác.', 'Mốc không chính xác.', 'Tủy xương chưa là nơi tạo máu chính ở tuần 8–10.'],
   exam: 'Ra 1 lần', bed: 'Gan là cơ quan tạo máu chính của thai (tuần 11–24).' },

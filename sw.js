@@ -1,5 +1,5 @@
 /* sw.js — cache-first, chạy 100% offline. Đổi V khi phát hành bản mới để xóa cache cũ. */
-const V = 'nhi-cb-v5';
+const V = 'nhi-cb-v6';
 const A = ['./', 'index.html', 'css/fonts.css', 'css/style.css', 'css/plus.css', 'js/scenes-core.js', 'js/beats-coban.js', 'js/beats-coban-2.js', 'js/quiz-data.js', 'js/crash-data.js',
   'js/cases-data.js', 'js/course.js', 'js/myths.js', 'js/lab.js', 'js/practice.js', 'js/steth.js', 'js/plus.js', 'js/app.js'];
 self.addEventListener('install', e => e.waitUntil(caches.open(V).then(c => Promise.all(A.map(u => c.add(u).catch(() => {})))).then(() => self.skipWaiting())));

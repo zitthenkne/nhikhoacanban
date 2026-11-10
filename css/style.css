@@ -179,6 +179,28 @@ svg text { font-family: var(--fh); fill: var(--ink); paint-order: stroke; stroke
 .hole { stroke: var(--ink); stroke-width: .8; stroke-dasharray: 2 2; }
 .flap { stroke: color-mix(in srgb, var(--muscle) 40%, var(--ink)); stroke-width: 4; stroke-linecap: round; }
 .pinch { stroke: var(--ink); stroke-width: 5; stroke-linecap: round; fill: none; }
+/* tim giải phẫu: van, cây mạch phổi, đồng hồ 2 kim, hàm cơ phễu, chân bé, kẹp rốn */
+.olab.big { font-size: 13.5px; }
+.valve { fill: none; stroke: color-mix(in srgb, var(--muscle) 30%, var(--ink)); stroke-width: 2; stroke-linecap: round; }
+.tree { fill: none; stroke-linecap: round; opacity: .9; }
+.lung { transition: fill .3s; }
+.hinge { fill: var(--ink); }
+.placl { fill: none; stroke: var(--peach-i); stroke-width: 1.2; opacity: .7; }
+.clamp rect { fill: var(--muted); stroke: var(--ink); stroke-width: .8; }
+.tap { fill: none; stroke: color-mix(in srgb, var(--ink) 55%, var(--card)); stroke-width: 2; stroke-linecap: round; }
+.tapd { fill: var(--ink); }
+.gz-b { fill: color-mix(in srgb, var(--ink) 62%, #9aa); stroke: var(--card); stroke-width: 1.5; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .25)); }
+.gz-f { fill: #fffdf6; }
+.gz-t { stroke: #3b324d; stroke-width: 1; }
+.gz-n { stroke-width: 2.2; stroke-linecap: round; transition: none; }
+.gz-n.ra { stroke: var(--deo); } .gz-n.la { stroke: var(--oxy); }
+.gz-p { fill: #3b324d; }
+.jaw { fill: color-mix(in srgb, var(--muscle) 55%, #b4465c); stroke: color-mix(in srgb, var(--muscle) 30%, var(--ink)); stroke-width: 1.2; }
+.limbs { stroke: var(--skin); stroke-linecap: round; filter: drop-shadow(0 1px 1px rgba(74, 63, 99, .3)); }
+.skinp { fill: var(--skin); stroke: color-mix(in srgb, var(--skin) 55%, var(--ink)); stroke-width: 1; }
+.grip { fill: none; stroke: var(--hl); stroke-width: 2; stroke-dasharray: 4 3; }
+.grip .chev { stroke-dasharray: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.heart .grip rect, .heart .grip ellipse, .heart circle.grip { fill: color-mix(in srgb, var(--hl) 12%, transparent); }
 .tankw { fill: none; stroke: var(--muted); stroke-width: 3; }
 .water { fill: color-mix(in srgb, var(--sky-d) 70%, transparent); transition: d .2s; }
 .drain { stroke: var(--sky-d); }
@@ -363,7 +385,7 @@ body.drawer #drawer { transform: none; }
   .tihon { display: block; height: auto; padding: 0 12px 96px; }
   .fig { position: sticky; top: 0; z-index: 10; margin: 0 -12px 12px; border-radius: 0 0 14px 14px; border-top: 0; padding: 6px 10px 4px; }
   .fig::before { display: none; }
-  .art { flex: none; height: 160px; }
+  .art { flex: none; height: min(59vw, 260px); }
   .fig.mini .art { height: 44px; }
   .fig.mini .sim, .fig.mini .src, .fig.mini .badge { display: none; }
   .fig.mini::after { content: '▾ chạm để mở hình'; position: absolute; right: 12px; bottom: 4px; font: 700 10.5px var(--fh); color: var(--muted); }

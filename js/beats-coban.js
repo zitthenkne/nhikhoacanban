@@ -45,9 +45,17 @@ const BARS6 = [
   { id: 'bap-be', row: 2, a: 6, c: 8, b: 12, rf: 12, label: 'Bập bẹ' }, { id: 'tu-don', row: 2, lane: 1, a: 11, c: 13, b: 16, rf: 16, label: 'Từ đơn' }, { id: 'cum-tu', row: 2, a: 18, c: 21, b: 24, rf: 24, label: 'Cụm 2 từ' },
   { id: 'giu-dau', row: 3, a: 2, c: 3, b: 4, rf: 4, label: 'Giữ đầu' }, { id: 'ngoi', row: 3, lane: 1, a: 5, c: 6.5, b: 9, rf: 9, label: 'Tự ngồi' }, { id: 'di', row: 3, a: 11, c: 13, b: 18, rf: 18, label: 'Tự đi' }];
 
-// Màn 5.1 — Tuần hoàn chuyển tiếp: t = 0 Thai · 1 Nhát thở đầu · 2 Kẹp rốn (nội suy mượt giữa các bước)
-const fo = v => { const b = cl(v.t), c = cl(v.t - 1), ra = 5 - b - 2 * c, la = 3 + 3 * b + c, pa = 50 - 20 * b, ao = 45 + 10 * c;
-  return { b, c, ra, la, pa, ao, rp: 100 - 80 * b }; };
+// Màn 5.1 — Tuần hoàn chuyển tiếp. b phổi nở 0–1 · c kẹp rốn 0/1 · pp trẻ ngạt (PPHN) 0/1.
+// Mắt xích trung gian là kháng lực phổi rp (không phải nhát thở): rp → dòng phổi qp → áp nhĩ T; mất bánh nhau + rp → áp nhĩ P.
+const fo = v => { const b = cl(v.b), c = cl(v.c), pp = cl(v.pp), rp = 1 - .8 * b * (1 - .7 * pp), qp = .2 / rp,
+  la = 2 + 4 * qp, ra = 3 + 1.5 * (1 - c) + 1.5 * rp, ppa = 20 + 50 * rp, pao = 45 + 10 * c, open = cl((ra - la) / 2.5), da = Math.max(-1.6, Math.min(1.6, (ppa - pao) / 15));
+  // SpO₂ minh họa: phổi có khí mới trao đổi O₂; máu TMC dưới qua lỗ bầu dục trộn vào nhĩ T; SvO₂ ≈ 0,72·SaO₂
+  const pv = .62 + .36 * b, qf = .8 * open; let svc = .55, ivc, la2;
+  for (let i = 0; i < 6; i++) { ivc = svc + (.82 - svc) * (1 - c) * .6; la2 = (qp * pv + qf * ivc) / (qp + qf); svc = .72 * la2; }
+  // ÔĐM P → T đổ máu ĐMP vào ĐMC xuống (sau chỗ tách ĐM dưới đòn) → chân tím hơn tay phải
+  const pa = .6 * svc + .4 * ivc, dr = Math.min(.6, Math.max(0, da) * 2), leg = la2 * (1 - dr) + pa * dr;
+  return { b, c, pp, rp, qp, qf, la, ra, ppa, pao, open, da, pv, svc, ivc, pa, sa: la2, leg }; };
+const pct = x => Math.round(x * 100) + '%';
 
 ZS.BEATS = [
 {
@@ -258,31 +266,35 @@ ZS.BEATS = [
   src: 'Nguồn: Sự phát triển tâm thần và vận động ở trẻ em (BM Nhi ĐHYD) — mục 5.1 dấu hiệu chậm phát triển. Thanh mốc: khoảng tuổi điển hình, làm tròn.',
 },
 {
-  id: 'beat-12-foramen-ovale', n: 12, title: 'Sập van lỗ bầu dục khi trẻ chào đời', mode: 'xem',
-  ask: { q: 'Trẻ khóc tiếng đầu tiên rồi được kẹp rốn. Áp lực buồng nào **tăng lên** để đóng van lỗ bầu dục?',
-    opts: ['Tâm nhĩ phải', 'Tâm nhĩ trái'], a: 1,
-    why: 'Phổi nở → kháng lực phổi sụt → máu lên phổi tăng → máu tĩnh mạch phổi đổ về **nhĩ trái** tăng → P nhĩ trái > P nhĩ phải → lá van bị ép vào vách.' },
+  id: 'beat-12-foramen-ovale', n: 12, title: 'Sập van lỗ bầu dục khi trẻ chào đời', mode: 'thu',
+  ask: { q: 'Trẻ khóc tiếng đầu tiên, phổi nở ra. Lá van lỗ bầu dục **sập lại vì đâu**?',
+    opts: ['Tim phải co bóp mạnh hơn, đẩy lá van đóng', 'Máu từ phổi về nhĩ trái tăng → áp nhĩ trái vượt nhĩ phải, ép lá van vào vách', 'Kẹp rốn làm máu dồn về nhĩ phải, căng đóng van'], a: 1,
+    why: 'Tiểu ĐM phổi giãn → máu lên phổi tăng → TM phổi đổ về **nhĩ trái** → áp nhĩ T vượt nhĩ P, ép lá van vào vách. Kẹp rốn làm áp nhĩ P **giảm**, không tăng.' },
   ui: {
-    model: 'organHydraulic', init: { t: 0 },
-    ids: { phoi: 'pulm-res', la: 'la-chamber', fo: 'fo-valve' },
-    ctl: [{ t: 'steps', k: 't', label: 'Tiến trình chuyển tiếp', opts: ['1. Bào thai', '2. Nhát thở đầu', '3. Kẹp rốn'], d: 900 }],
-    goal: s => s.t >= 2,
-    // SpO₂ minh họa: thai — TM rốn giàu oxy nhất, tim trái máu pha (tím), TMC trên nghèo oxy; sau sinh — tim trái đỏ, tim phải xanh
-    calc: v => { const p = fo(v), venous = .64 - .04 * p.b, art = .78 + .19 * p.b;
-      return { hr: 140 - 10 * p.b, P: { ra: p.ra, la: p.la }, lung: .3 + .7 * p.b, fo: cl((p.ra - p.la) / 2), da: 1, placenta: 1 - p.c,
-        sat: { svc: .6, ivc: .82 - .22 * p.c, ra: .72 - .12 * p.b, rv: venous, pa: venous, la: art, lv: art, ao: .74 + .23 * p.b },
-        flow: { fo: Math.max(0, p.ra - p.la) / 2, lung: .15 + .85 * p.b, pa: .45 + .55 * p.b, da: Math.max(-1.6, (p.pa - p.ao) / 15), uv: .8 * (1 - p.c), ivc: .8 } }; },
-    hud: v => { const p = fo(v); return [['Kháng lực phổi', Math.round(p.rp) + '%'], ['Lỗ bầu dục', p.ra > p.la ? 'MỞ (P → T)' : 'ĐÓNG']]; },
+    model: 'organHydraulic', fo: true, init: { b: 0, c: 0, pp: 0 },
+    ids: { pvr: 'pulm-res', la: 'la-chamber', fo: 'fo-valve', gauge: 'p-gauge', da: 'da-flow' },
+    ctl: [{ t: 'range', k: 'b', label: 'Phổi nở', min: 0, max: 1, step: .05, fmt: x => Math.round(x * 100), unit: '%' },
+      { t: 'toggle', k: 'c', label: 'Dây rốn', a: 'Còn', b: 'Kẹp', d: 700 }, { t: 'toggle', k: 'pp', label: 'Đối chứng', a: 'Trẻ khỏe', b: 'Trẻ ngạt', d: 700 }],
+    // kéo mép ngoài 2 lá phổi ra xa tim = phổi nở
+    drag: [{ k: 'b', box: [20, 40, 178, 272], r: [1, 0], step: .05 }, { k: 'b', box: [382, 40, 540, 272], r: [0, 1], step: .05 }],
+    goal: s => s.b >= .9 && s.c === 1 && !s.pp,
+    calc: v => { const p = fo(v);
+      return { hr: 140 - 10 * p.b, P: { ra: p.ra, la: p.la }, gauge: { ra: p.ra, la: p.la }, lung: p.b, cal: cl((1 / p.rp - 1) / 4), fo: p.open, da: 1, placenta: 1 - p.c, clamp: p.c,
+        sat: { svc: p.svc, ivc: p.ivc, ra: (p.svc + p.ivc) / 2, rv: p.pa, pa: p.pa, la: p.sa, lv: p.sa, ao: p.sa, aoD: p.leg, pv: p.pv, uv: .85 },
+        flow: { fo: p.qf, lung: p.qp, pa: p.qp + Math.max(0, p.da) * .6, da: p.da, uv: .8 * (1 - p.c), ivc: .8, svc: .6, ao: 1, body: 1 } }; },
+    hudAt: [548, 282, 'end'],
+    hud: v => { const p = fo(v); return [['Kháng lực phổi', pct(p.rp)], ['Lỗ bầu dục', p.open > .02 ? 'MỞ P→T' : 'ĐÓNG']].concat(p.c < .5
+      ? [['SpO₂', 'nhau cấp O₂']] : [['SpO₂ tay P', pct(p.sa)], ['SpO₂ chân', pct(p.leg)]]); },
   },
   chain: [
-    { t: 'Phế nang nở, mạch phổi giãn → **kháng lực phổi tụt ~80%**, máu ùa lên phổi.', hl: 'pulm-res', when: v => v.t >= .5 },
-    { t: 'Máu từ phổi đổ về làm **P nhĩ trái > P nhĩ phải**.', hl: 'la-chamber', when: v => fo(v).la > fo(v).ra },
-    { t: 'Chênh áp ép **lá van lỗ bầu dục** đóng vào vách liên nhĩ (đóng chức năng).', hl: 'fo-valve', when: v => fo(v).la > fo(v).ra },
-    { t: 'Kẹp rốn: mất **bánh nhau** kháng lực thấp → kháng lực hệ thống tăng, máu về nhĩ phải giảm thêm.', hl: 'nhau', when: v => v.t >= 1.5 },
+    { t: 'Phổi nở + oxy → **tiểu ĐM phổi giãn**, kháng lực phổi tụt, máu ùa lên phổi.', hl: 'pulm-res', when: v => fo(v).rp < .6 },
+    { t: 'TM phổi đổ về nhĩ T nhiều → **kim nhĩ T vượt kim nhĩ P**.', hl: 'p-gauge', when: v => fo(v).la > fo(v).ra },
+    { t: 'Chênh áp ép **lá van** (nằm phía nhĩ T) vào vách → lỗ bầu dục đóng chức năng.', hl: 'fo-valve', when: v => fo(v).la > fo(v).ra },
+    { t: 'Kẹp rốn: mất **bánh nhau** kháng lực thấp → áp ĐMC tăng, máu về nhĩ P giảm; ÔĐM đảo chiều T → P.', hl: 'nhau', when: v => v.c >= .5 },
   ],
-  clin: 'Trẻ ngạt, thiếu oxy, toan máu → mạch phổi co thắt, không giãn → **tăng áp phổi tồn tại (PPHN)**, shunt phải → trái qua lỗ bầu dục / ống động mạch, tím khó điều trị.',
-  trap: 'Nhĩ trái **đẩy** lá van đóng một cách thụ động — tim phải không hề "bơm" đóng van. Đóng chức năng ≠ đóng giải phẫu: **15–25% người lớn** vẫn còn lỗ bầu dục.',
-  pearl: 'Lỗ bầu dục là van một chiều cơ học: mở khi P nhĩ phải > P nhĩ trái, đóng khi P nhĩ trái > P nhĩ phải.',
+  clin: 'Bật **Trẻ ngạt**, kéo phổi hết cỡ: tiểu ĐM vẫn co → van mở lại, ÔĐM P → T = **PPHN**. Đo SpO₂ **tay phải và chân**: tay cao hơn chân gợi ý shunt qua ÔĐM.',
+  trap: 'Nhĩ T **đẩy** lá van đóng thụ động; tim P không "bơm" đóng van. Khóc, rặn làm áp nhĩ P vọt lên → van có thể mở lại thoáng qua.',
+  pearl: 'Thứ quyết định van là **kháng lực phổi**, không phải bản thân nhát thở.',
   src: 'Nguồn: Đặc điểm hệ tuần hoàn trẻ em — BM Nhi ĐHYD TPHCM (2019), mục Tuần hoàn chuyển tiếp & sơ sinh.',
 },
 ];

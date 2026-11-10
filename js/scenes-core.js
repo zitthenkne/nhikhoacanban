@@ -90,70 +90,137 @@ models.curvePlot = (svg, o) => {
   } };
 };
 
-/* 2 ─ organHydraulic: tim 4 buồng + mạch lớn + shunt thai (Beat 12, 13) | bể dược động học (Beat 7) */
-// Tim nhìn thẳng kiểu giải phẫu (trái ảnh = bên PHẢI bé): 2 lá phổi, ĐMC lên – quai – xuống, thân ĐMP chia 2 nhánh,
-// TM phổi về nhĩ T, TMC trên/dưới về nhĩ P. Mạch phía trước có viền (casing) để đọc được trước/sau. 2 vòng có nhãn riêng.
+/* 2 ─ organHydraulic: tim giải phẫu (Beat 12, 13) | bể dược động học (Beat 7) */
+// Tim cắt đứng ngang, nhìn trước (trái ảnh = bên PHẢI bé). 2 phổi: cây tiểu ĐM phổi (cỡ = kháng lực phổi) + cây TM phổi.
+// Vẽ từ sau ra trước: phổi → mạch sau tim (ĐMP P, TMC dưới, ĐMC xuống, TM phổi) → cơ tim/buồng/van → mạch trước tim có viền
+// (TMC trên, ĐMC lên–quai, thân ĐMP, ĐMP T, ÔĐM). o.fo: lỗ bầu dục + đồng hồ 2 kim + bánh nhau/kẹp rốn. o.tof: 4 thành phần Fallot + chân bé.
 const arr = (x, y, a) => { const r = a * Math.PI / 180, c = Math.cos(r), s = Math.sin(r); return `M${n1(x + 7 * c)} ${n1(y + 7 * s)}L${n1(x - 5 * c - 5 * s)} ${n1(y - 5 * s + 5 * c)}L${n1(x - 5 * c + 5 * s)} ${n1(y - 5 * s - 5 * c)}Z`; };
+// cây mạch phổi: nhánh chính rốn phổi → đích, mỗi nhánh 2 cành con
+const tree = ([hx, hy], pts) => pts.map(([x, y]) => { const px = hx + (x - hx) * .58, py = hy + (y - hy) * .58, dx = (x - hx) * .34, dy = (y - hy) * .34, tw = a => { const r = a * Math.PI / 180;
+  return `M${n1(px)} ${n1(py)}l${n1(dx * Math.cos(r) - dy * Math.sin(r))} ${n1(dx * Math.sin(r) + dy * Math.cos(r))}`; };
+  return `M${hx} ${hy}Q${n1((hx + x) / 2)} ${n1((hy + y) / 2 - 6)} ${x} ${y}` + tw(32) + tw(-32); }).join('');
+const mir = P => P.map(([x, y]) => [560 - x, y]);
+const RA_T = [[118, 78], [74, 116], [56, 166], [80, 218], [126, 240]], RV_T = [[100, 112], [62, 150], [66, 204], [110, 250], [146, 228]];
 const HP = {
-  out: 'M232 116C204 122 194 160 202 196C212 246 262 290 320 306C344 288 368 252 374 212C380 170 362 128 330 116C300 104 260 106 232 116Z',
-  ch: { ra: 'M236 126C214 134 208 168 216 198L258 200C262 176 260 146 250 126Z', la: 'M268 122C290 114 324 116 338 128C348 148 346 172 338 188L272 190C266 166 264 144 268 122Z',
-    rv: 'M220 208L294 210C296 240 300 268 308 294C276 284 238 258 220 208Z', lv: 'M306 200L344 196C366 214 370 252 352 282C344 294 334 300 322 300C314 270 308 236 306 200Z' },
-  CL: { ra: [234, 164, 'Nhĩ P'], la: [314, 156, 'Nhĩ T'], rv: [258, 240, 'Thất P'], lv: [338, 244, 'Thất T'] },
-  lungs: [['M150 46C120 40 70 70 48 130C30 180 34 236 52 256C80 268 128 262 160 246C170 210 172 120 150 46Z', 100, 156, 'Phổi phải'],
-    ['M410 46C440 40 490 70 512 130C530 180 526 236 508 256C480 268 432 262 400 246C390 210 388 120 410 46Z', 462, 156, 'Phổi trái']],
-  fiss: 'M60 150C90 140 130 150 160 136M66 204C100 196 134 206 160 196M500 170C470 160 430 168 402 158',
-  V: { pvl: 'M166 176C200 176 240 168 274 160', pvr: 'M398 176C380 172 360 166 340 160', rpa: 'M326 112C290 104 220 112 166 146', ivc: 'M206 324C204 290 208 240 216 202',
-    aoD: 'M372 108V324', uv: 'M76 330C130 330 180 324 206 300', aoA: 'M318 200C304 160 282 120 270 96C262 72 290 50 326 50C356 50 372 70 372 110', svc: 'M238 22V128',
-    pa: 'M262 208C268 170 292 132 326 112', lpa: 'M326 112C350 112 372 124 398 146', da: 'M338 110C342 92 346 74 350 60' },
-  W: { pvl: 9, pvr: 9, rpa: 10, ivc: 15, aoD: 14, uv: 7, aoA: 15, svc: 14, pa: 15, lpa: 10, da: 8 },
-  G: { uv: 'nhau', aoA: 'ao', aoD: 'ao', pa: 'pa', lpa: 'pa', da: 'da' }, CASE: { aoA: 1, pa: 1, lpa: 1, svc: 1 },
-  L: [['TMC trên', 248, 30, 0], ['TMC dưới', 198, 284, 1], ['ĐMC', 326, 42, 2], ['ĐMP', 362, 102, 2], ['TM phổi', 400, 196, 0]],
-  A: arr(238, 118, 90) + arr(215, 208, -80) + arr(172, 144, 150) + arr(392, 141, 35) + arr(268, 161, -5) + arr(346, 161, 185) + arr(372, 316, 90),
+  lungs: [{ d: 'M150 50C116 40 66 66 46 124C30 172 32 232 50 258C80 272 132 266 166 248C176 214 178 178 172 150C170 112 166 74 150 50Z', c: [104, 158],
+    fiss: 'M44 150C86 140 128 150 172 142M50 246C90 216 128 196 170 190', art: tree([170, 146], RA_T), vei: tree([170, 176], RV_T), lab: [104, 64, 'Phổi phải'], grip: [34, 160, -1] },
+  { d: 'M410 50C444 40 494 66 514 124C530 172 528 232 510 258C480 272 432 268 404 252C414 236 414 212 398 200C386 186 384 166 388 150C390 112 394 74 410 50Z', c: [456, 158],
+    fiss: 'M394 98C436 132 478 176 518 212', art: tree([390, 146], mir(RA_T)), vei: tree([390, 176], mir(RV_T)), lab: [456, 64, 'Phổi trái'], grip: [526, 160, 1] }],
+  out: 'M214 132C200 140 196 170 198 196C200 226 212 260 236 282C264 304 310 318 340 314C362 302 372 270 372 234C372 198 366 168 356 148C346 128 324 120 300 122C270 122 236 120 214 132Z',
+  outT: 'M214 132C200 140 196 170 198 196C200 226 208 254 228 274C252 296 296 304 328 296C354 288 372 262 372 232C372 198 366 168 356 148C346 128 324 120 300 122C270 122 236 120 214 132Z',
+  ch: { ra: 'M216 142C206 156 206 184 212 208L258 210C260 186 260 160 256 138C242 132 226 134 216 142Z', la: 'M280 134C296 128 326 128 344 138C356 152 358 176 350 196L282 198C280 178 278 156 280 134Z',
+    rv: 'M212 218L294 220C296 248 304 278 318 302C282 298 236 272 212 218Z', lv: 'M306 208L352 204C366 224 368 262 354 290C346 302 336 308 328 306C318 274 310 242 306 208Z' },
+  chT: { rv: 'M222 226L288 228C290 248 296 268 302 282C278 276 240 258 222 226Z', lv: 'M314 216L350 212C362 230 362 258 350 278C344 288 338 292 332 290C324 264 318 240 314 216Z' },
+  CL: { ra: [222, 152, 'Nhĩ P'], la: [334, 172, 'Nhĩ T'], rv: [254, 258, 'Thất P'], lv: [338, 262, 'Thất T'] }, CLT: { rv: [256, 254], lv: [336, 256] },
+  valve: 'M216 212Q222 226 232 224M258 212Q252 226 242 224M312 204Q318 216 326 214M350 202Q344 214 334 214',
+  V: { svc: 'M234 10V140', ivc: 'M200 338C198 300 198 262 202 236C204 222 210 212 218 206', aoD: 'M388 92V322', br: 'M300 52L294 12M322 44L322 10M344 44L352 12',
+    aoA: 'M306 212C302 186 292 156 284 126C278 102 278 80 288 62C302 40 348 34 372 50C384 60 388 76 388 96',
+    aoAT: 'M300 230C298 192 292 156 284 126C278 102 278 80 288 62C302 40 348 34 372 50C384 60 388 76 388 96',
+    pa: 'M284 224C292 196 304 168 318 146C326 132 334 118 340 106', paT: 'M262 236C276 210 302 172 318 146C326 132 334 118 340 106',
+    lpa: 'M340 106C358 104 378 114 398 132', rpa: 'M340 106C310 104 262 108 226 118C204 124 186 134 170 146', da: 'M348 104C352 90 360 74 370 58',
+    pvR: 'M172 176C200 172 228 166 256 164', pvL: 'M392 176C378 172 364 170 352 168', uv: 'M70 322C120 324 170 316 201 298',
+    fo: 'M216 204C236 198 256 192 300 186', vsd: 'M262 240C280 236 296 228 300 214', fem: 'M388 322C390 332 400 334 414 330' },
+  W: { svc: 14, ivc: 15, aoD: 13, br: 6, aoA: 15, aoAT: 19, pa: 15, paT: 11, lpa: 10, rpa: 10, da: 8, pvR: 9, pvL: 9, uv: 7 },
+  A: { svc: [234, 116, 90], ivc: [200, 262, -90], aoD: [388, 290, 90], lpa: [390, 126, 40], rpa: [184, 138, 150], pvR: [190, 174, -10], pvL: [370, 170, 190], pa: [330, 126, -62] },
 };
-const HEART_IDS = ['phoi', 'ra', 'la', 'rv', 'lv', 'fo', 'vsd', 'rvot', 'pa', 'ao', 'da', 'svr', 'nhau', 'co-the'];
+const HEART_IDS = ['phoi', 'pvr', 'ra', 'la', 'rv', 'lv', 'fo', 'gauge', 'vsd', 'rvot', 'pa', 'ao', 'da', 'svr', 'nhau', 'co-the'];
+const GZ = [260, 152], gAng = p => (135 + 270 * clamp(p / 8)) * Math.PI / 180; // đồng hồ 0–8 mmHg, quét 270°
 const heart = (svg, o) => {
-  const G = el('g', { class: 'heart' }, svg), ves = {}, flo = {}, grp = {}, nm = k => hid((o.ids && o.ids[k]) || k);
-  tx(G, 12, 16, 'VÒNG NHỎ: Thất P → ĐMP → 2 phổi → TM phổi → Nhĩ T', 'circ1');
-  const lungs = el('g', { id: nm('phoi') }, G), lg = HP.lungs.map(([d, x, y, n]) => { const g = el('g', null, lungs); el('path', { d, class: 'lung' }, g); tx(g, x, y, n, 'olab', MID); return [g, x, y]; });
-  el('path', { d: HP.fiss, class: 'fiss' }, lungs);
-  const body = el('g', { id: nm('co-the') }, G); el('rect', { x: 176, y: 324, width: 230, height: 24, rx: 10, class: 'bodyb' }, body);
-  tx(body, 291, 341, 'VÒNG LỚN: Thất T → ĐMC → cơ thể → TMC → Nhĩ P', 'circ2', MID);
-  const nh = grp.nhau = el('g', { id: nm('nhau') }, G); el('path', { d: circ(58, 330, 16), class: 'plac' }, nh); tx(nh, 58, 306, 'Bánh nhau', 'oval', MID);
-  const vessel = k => { const id = HP.G[k], g = id ? (grp[id] = grp[id] || el('g', { id: nm(id) }, G)) : G;
-    if (HP.CASE[k]) el('path', { d: HP.V[k], class: 'casing', 'stroke-width': HP.W[k] + 5 }, g);
-    ves[k] = el('path', { d: HP.V[k], class: 'ves', 'stroke-width': HP.W[k] }, g); flo[k] = el('path', { d: HP.V[k], class: 'flow' }, g); };
-  ['pvl', 'pvr', 'rpa', 'ivc', 'aoD', 'uv'].forEach(vessel);                  // nằm sau tim
-  el('path', { d: HP.out, class: 'myo' }, G); el('path', { d: 'M226 140C236 124 262 118 284 120', class: 'shine' }, G);
+  const G = el('g', { class: 'heart' + (o.tof ? ' tof' : '') }, svg), ves = {}, flo = {}, grp = {}, nm = k => hid((o.ids && o.ids[k]) || k), T = !!o.tof;
+  const gOf = id => grp[id] = grp[id] || el('g', { id: nm(id) }, G);
+  const vessel = (k, id, cas, d) => { const g = id ? gOf(id) : G, p = d || HP.V[k];
+    if (cas) el('path', { d: p, class: 'casing', 'stroke-width': HP.W[k] + 5 }, g);
+    ves[k] = el('path', { d: p, class: 'ves', 'stroke-width': HP.W[k] }, g); flo[k] = el('path', { d: p, class: 'flow' }, g);
+    if (HP.A[k]) el('path', { d: arr(...HP.A[k]), class: 'arrowh' }, g); };
+  tx(G, 12, 18, 'VÒNG NHỎ · phổi', 'circ1');
+  // ① phổi: nhu mô + cây tiểu ĐM (id pvr) + cây TM phổi; cả lá phổi phồng theo c.lung
+  const lungs = gOf('phoi'), pvr = el('g', { id: nm('pvr') }, G), LG = HP.lungs.map(L => { const g = el('g', null, lungs);
+    const body = el('path', { d: L.d, class: 'lung' }, g); el('path', { d: L.fiss, class: 'fiss' }, g);
+    const vei = el('path', { d: L.vei, class: 'tree' }, g), art = el('path', { d: L.art, class: 'tree' }, g);
+    tx(g, L.lab[0], L.lab[1], L.lab[2], 'olab', MID);
+    if (o.fo) { const [x, y, sd] = L.grip, gr = el('g', { class: 'grip' }, g); el('rect', { x: x - 7, y: y - 22, width: 14, height: 44, rx: 7 }, gr);
+      el('path', { d: `M${x - 2 * sd} ${y - 6}l${5 * sd} 6l${-5 * sd} 6`, class: 'chev' }, gr); }
+    return { L, g, body, vei, art }; });
+  pvr.remove(); lungs.appendChild(pvr); LG.forEach(l => pvr.appendChild(l.art)); // tiểu ĐM phổi gom 1 nhóm để neo #hl
+  // ② vòng lớn: khối cơ thể; bánh nhau + dây rốn (thai)
+  const body = gOf('co-the'); el('rect', { x: 196, y: 320, width: 200, height: 26, rx: 12, class: 'bodyb' }, body);
+  tx(body, 296, 337, 'VÒNG LỚN · cơ thể', 'circ2', MID);
+  let nh, clamp1, clamp2;
+  if (o.fo) { nh = gOf('nhau'); el('path', { d: circ(50, 322, 19), class: 'plac' }, nh); el('path', { d: 'M38 314q8 6 4 16M52 306q-2 10 8 14M44 334q10-4 18 2', class: 'placl' }, nh);
+    tx(nh, 50, 296, 'Bánh nhau', 'oval', MID); vessel('uv', 'nhau'); tx(nh, 112, 340, 'TM rốn', 'oval', MID);
+    const k = el('g', { class: 'clamp' }, G); clamp1 = el('rect', { x: 126, y: 306, width: 7, height: 13, rx: 2 }, k); clamp2 = el('rect', { x: 126, y: 327, width: 7, height: 13, rx: 2 }, k); }
+  // ③ mạch sau tim
+  vessel('rpa'); vessel('ivc'); vessel('aoD'); vessel('pvR'); vessel('pvL');
+  // ④ cơ tim, buồng, vách, van
+  el('path', { d: T ? HP.outT : HP.out, class: 'myo' }, G); el('path', { d: 'M222 140C234 128 262 124 284 126', class: 'shine' }, G);
   const ch = {}, pl = {};
-  for (const k in HP.ch) { const g = el('g', { id: nm(k) }, G); ch[k] = el('path', { d: HP.ch[k], class: 'cham ' + (k[1] === 'a' ? 'atr' : 'ven') }, g);
-    const [x, y, n] = HP.CL[k]; tx(g, x, y, n, 'olab', MID); pl[k] = tx(g, x, y + 14, '', 'oval', MID); }
-  const fo = el('g', { id: nm('fo') }, G), hole = el('rect', { x: 257, y: 146, width: 14, height: 24, rx: 4, class: 'hole' }, fo), flap = el('path', { d: 'M272 172V144', class: 'flap' }, fo);
-  flo.fo = el('path', { d: 'M236 158H302', class: 'flow' }, fo);
-  el('path', { d: HP.V.pvl, class: 'ghost' }, G); // TM phổi phải đi SAU nhĩ P (nét đứt = phần khuất)
-  const vsd = el('g', { id: nm('vsd') }, G), vh = el('rect', { x: 296, y: 230, width: 16, height: 22, rx: 4, class: 'hole' }, vsd); flo.vsd = el('path', { d: 'M262 241H342', class: 'flow' }, vsd);
-  ['svc', 'aoA', 'pa', 'lpa', 'da'].forEach(vessel);                         // nằm trước tim
-  tx(grp.da, 346, 80, 'ÔĐM', 'oval', END); tx(nh, 112, 340, 'TM rốn', 'oval', MID);
-  el('path', { d: HP.A, class: 'arrowh' }, G);
-  const rvot = el('g', { id: nm('rvot') }, G), pin = el('path', { class: 'pinch' }, rvot);
-  const svr = el('g', { id: nm('svr') }, G), jaw = el('path', { class: 'pinch' }, svr); tx(svr, 386, 296, 'Gập ĐM đùi', 'oval');
-  HP.L.forEach(([s, x, y, a]) => tx(G, x, y, s, 'oval', a === 1 ? END : a === 2 ? MID : null));
+  for (const k in HP.ch) { const g = gOf(k), d = T && HP.chT[k] || HP.ch[k]; ch[k] = el('path', { d, class: 'cham ' + (k[1] === 'a' ? 'atr' : 'ven') }, g);
+    const [x0, y0, n] = HP.CL[k], [x, y] = T && HP.CLT[k] || [x0, y0]; tx(g, x, y, n, 'olab big', MID); pl[k] = tx(g, x, y + 14, '', 'oval', MID); }
+  el('path', { d: HP.valve, class: 'valve' }, G);
+  const gh = el('path', { d: 'M200 178C224 177 254 175 282 170', class: 'ghost' }, G); // TM phổi P đi SAU nhĩ P vào nhĩ T (nét đứt = khuất)
+  let flap, hole, ndl;
+  if (o.fo) { const f = gOf('fo'); hole = el('rect', { x: 258, y: 178, width: 22, height: 26, rx: 6, class: 'hole' }, f);
+    flo.fo = el('path', { d: HP.V.fo, class: 'flow' }, f); flap = el('path', { d: 'M282 206V170', class: 'flap' }, f); el('circle', { cx: 282, cy: 206, r: 2.6, class: 'hinge' }, f); }
+  let vh;
+  if (T) { const g = gOf('vsd'); vh = el('rect', { x: 290, y: 212, width: 20, height: 24, rx: 6, class: 'hole' }, g); flo.vsd = el('path', { d: HP.V.vsd, class: 'flow' }, g); }
+  // ⑤ mạch trước tim (có viền)
+  vessel('svc', null, 1); vessel(T ? 'aoAT' : 'aoA', 'ao', 1); el('path', { d: HP.V.br, class: 'casing', 'stroke-width': 10 }, grp.ao); ves.br = el('path', { d: HP.V.br, class: 'ves', 'stroke-width': 6 }, grp.ao);
+  el('path', { d: T ? 'M291 222Q300 214 309 222' : 'M297 204Q305 196 313 202', class: 'valve' }, grp.ao);
+  vessel(T ? 'paT' : 'pa', 'pa', 1); vessel('lpa', 'pa', 1); vessel('da', 'da', 1);
+  el('path', { d: 'M310 152Q318 140 326 152', class: 'valve' }, grp.pa);
+  // ⑥ bộ phận máy: đồng hồ 2 kim trên vách liên nhĩ (fo) · vòng cơ phễu + chân bé (tof)
+  if (o.fo) { const g = gOf('gauge'), [cx, cy] = GZ;
+    el('path', { d: `M${cx - 7} ${cy + 12}L246 184M${cx + 7} ${cy + 12}L288 182`, class: 'tap' }, g); el('circle', { cx: 246, cy: 184, r: 2.4, class: 'tapd' }, g); el('circle', { cx: 288, cy: 182, r: 2.4, class: 'tapd' }, g);
+    el('circle', { cx, cy, r: 15.5, class: 'gz-b' }, g); el('circle', { cx, cy, r: 12.6, class: 'gz-f' }, g);
+    let tk = ''; for (let p = 0; p <= 8; p++) { const a = gAng(p), r0 = p % 2 ? 10.6 : 9.4; tk += `M${n1(cx + r0 * Math.cos(a))} ${n1(cy + r0 * Math.sin(a))}L${n1(cx + 12 * Math.cos(a))} ${n1(cy + 12 * Math.sin(a))}`; }
+    el('path', { d: tk, class: 'gz-t' }, g);
+    ndl = ['ra', 'la'].map(k => el('line', { x1: cx, y1: cy, x2: cx, y2: cy - 10, class: 'gz-n ' + k }, g)); el('circle', { cx, cy, r: 2.2, class: 'gz-p' }, g); }
+  let jaws, leg;
+  if (T) { const g = gOf('rvot'), P = [269, 223], u = [.474, -.881], q = [.881, .474]; // vòng cơ phễu ở đường ra thất P, dưới van ĐMP
+    jaws = [-1, 1].map(sd => { const j = el('rect', { x: -5, y: -10, width: 10, height: 20, rx: 5, class: 'jaw' }, g); return { j, sd }; });
+    const gr = el('g', { class: 'grip' }, g); el('ellipse', { cx: P[0], cy: P[1], rx: 22, ry: 15, transform: `rotate(28 ${P[0]} ${P[1]})` }, gr);
+    el('path', { d: `M${P[0] - 30} ${P[1] + 4}l-6 -4 6 -4M${P[0] + 30} ${P[1] - 4}l6 4 -6 4`, class: 'chev' }, gr);
+    jaws.P = P; jaws.u = u; jaws.q = q;
+    const s = gOf('svr'); leg = { pel: el('path', { d: 'M414 318C422 312 438 312 446 318L448 340C438 346 422 346 414 340Z', class: 'skinp' }, s),
+      th: el('line', { class: 'limbs', 'stroke-width': 17 }, s), sh: el('line', { class: 'limbs', 'stroke-width': 13 }, s), ft: el('ellipse', { rx: 6, ry: 9, class: 'skinp' }, s),
+      art: el('path', { class: 'ves', 'stroke-width': 5 }, s), af: el('path', { class: 'flow' }, s), kink: el('path', { class: 'pinch' }, s),
+      grip: el('circle', { r: 13, class: 'grip' }, s), lab: tx(s, 470, 300, '', 'oval', MID) }; }
+  // ⑦ nhãn mạch
+  [['TMC trên', 244, 24, 0], ['TMC dưới', 194, 262, 1], ['ĐMC', 272, 86, 1], ['ĐMP', 352, 142, 0], ['TM phổi', 398, 194, 0]].concat(o.fo ? [['ÔĐM', 352, 82, 1]] : [])
+    .forEach(([s, x, y, a]) => tx(G, x, y, s, 'oval', a ? END : null));
   const upd = common(svg, o);
   return { update(v) {
-    const c = o.calc(v), S = c.sat || {}, F = c.flow || {}, P = c.P || {}, l = clamp(c.lung ?? 1);
-    for (const k in HP.ch) { ch[k].style.fill = mix(S[k] ?? .6); pl[k].textContent = P[k] != null ? Math.round(P[k]) + ' mmHg' : ''; }
-    const pa = S.pa ?? S.rv, vs = { pvl: S.la, pvr: S.la, rpa: pa, lpa: pa, pa: S.rv, ivc: S.ivc ?? .6, svc: S.svc ?? .55, aoA: S.ao, aoD: S.ao, uv: .9, da: S.da ?? pa };
+    const c = o.calc(v), S = c.sat || {}, F = c.flow || {}, P = c.P || {}, l = clamp(c.lung ?? 1), cal = clamp(c.cal ?? .6);
+    for (const k in ch) { ch[k].style.fill = mix(S[k] ?? .6); pl[k].textContent = P[k] != null ? n1(P[k]).toString().replace('.', ',') + ' mmHg' : ''; }
+    const pa = S.pa ?? S.rv ?? .6, pv = S.pv ?? S.la ?? .97, ao = S.ao ?? .97;
+    const vs = { svc: S.svc ?? .55, ivc: S.ivc ?? .6, aoA: ao, aoAT: ao, br: ao, aoD: S.aoD ?? ao, pa, paT: pa, lpa: pa, rpa: pa, pvR: pv, pvL: pv, uv: S.uv ?? .85, da: (F.da || 0) >= 0 ? pa : ao, fem: S.aoD ?? ao };
     for (const k in ves) ves[k].style.stroke = mix(vs[k] ?? .6);
-    const fl = { pvl: F.lung, pvr: F.lung, rpa: F.lung, lpa: F.lung, pa: F.pa, ivc: F.ivc ?? .8, svc: F.svc ?? .6, aoA: F.ao ?? 1, aoD: F.body ?? F.ao ?? 1, uv: F.uv || 0, da: F.da, fo: F.fo, vsd: F.vsd };
-    for (const k in flo) { setFlow(flo[k], fl[k]); flo[k].style.stroke = `color-mix(in srgb, ${mix(k === 'fo' ? S.ra ?? .6 : k === 'vsd' ? S.rv ?? .6 : vs[k] ?? .6)} 45%, #fff)`; }
-    G.style.setProperty('--hb', n1(60 / (c.hr || 120)) + 's'); // nhịp tim → chu chuyển co bóp
-    lg.forEach(([g, x, y]) => g.setAttribute('transform', `translate(${x} ${y}) scale(${n1(.62 + .38 * l)}) translate(${-x} ${-y})`));
-    const da = clamp(c.da ?? 0); ves.da.setAttribute('stroke-width', n1(1 + 7 * da)); grp.da.style.opacity = n1(.2 + .8 * da);
-    const op = clamp(c.fo ?? 0); flap.setAttribute('transform', `rotate(${n1(op * 38)} 272 172)`); hole.style.fill = op > .05 ? mix(S.ra ?? .6) : 'var(--muscle)';
-    nh.style.display = c.placenta > .02 ? '' : 'none'; nh.style.opacity = n1(clamp(c.placenta ?? 0)); ves.uv.style.opacity = nh.style.opacity; flo.uv.style.opacity = nh.style.opacity;
-    vsd.style.display = c.vsd == null ? 'none' : ''; vh.style.fill = mix(S.rv ?? .6);
-    rvot.style.display = c.rvot == null ? 'none' : ''; const gp = 14 * (1 - clamp(c.rvot ?? 0)) + 2;
-    pin.setAttribute('d', `M${n1(262 - gp / 2 - 6)} 192v16M${n1(266 + gp / 2 + 6)} 192v16`);
-    svr.style.display = c.svr == null ? 'none' : ''; const k = 7 * clamp(c.svr ?? 0); jaw.setAttribute('d', `M${n1(358 + k)} 282v22M${n1(386 - k)} 282v22`);
+    gh.style.stroke = mix(pv);
+    const fl = { pvR: F.lung, pvL: F.lung, rpa: F.lung, lpa: F.lung, pa: F.pa, paT: F.pa, ivc: F.ivc ?? .8, svc: F.svc ?? .6, aoA: F.ao ?? 1, aoAT: F.ao ?? 1, aoD: F.body ?? F.ao ?? 1, uv: F.uv || 0, da: F.da, fo: F.fo, vsd: F.vsd, fem: F.fem ?? 0 };
+    for (const k in flo) { setFlow(flo[k], fl[k]); flo[k].style.stroke = `color-mix(in srgb, ${mix(k === 'fo' ? S.ivc ?? .6 : k === 'vsd' ? (F.vsd || 0) >= 0 ? S.rv ?? .6 : S.lv ?? .97 : vs[k] ?? .6)} 40%, #fff)`; }
+    G.style.setProperty('--hb', n1(60 / (c.hr || 120)) + 's');
+    // phổi: phồng + sáng màu theo l (dịch → khí); tiểu ĐM giãn theo cal; TM phổi dày theo dòng phổi
+    LG.forEach(({ L, g, body: b, vei, art }) => { const [x, y] = L.c, tf = `translate(${x} ${y}) scale(${n1(.74 + .26 * l)}) translate(${-x} ${-y})`; g.setAttribute('transform', tf); art.setAttribute('transform', tf);
+      b.style.fill = `color-mix(in srgb, var(--pink) ${Math.round(40 + 60 * l)}%, var(--pink-d))`;
+      art.style.stroke = mix(pa); art.style.strokeWidth = n1(.9 + 3.4 * cal); vei.style.stroke = mix(pv); vei.style.strokeWidth = n1(.9 + 2.6 * clamp(F.lung ?? .5)); });
+    const da = clamp(c.da ?? 0); ves.da.setAttribute('stroke-width', n1(1.5 + 6.5 * da)); grp.da.style.opacity = n1(.35 + .65 * da);
+    if (flap) { const op = clamp(c.fo ?? 0); flap.setAttribute('transform', `rotate(${n1(op * 40)} 282 206)`); hole.style.fill = op > .05 ? mix(S.ivc ?? .6) : 'var(--muscle)'; }
+    if (ndl) { const [cx, cy] = GZ; ndl.forEach((n, i) => { const a = gAng((c.gauge || P)[i ? 'la' : 'ra'] ?? 0); n.setAttribute('x2', n1(cx + 10.5 * Math.cos(a))); n.setAttribute('y2', n1(cy + 10.5 * Math.sin(a))); }); }
+    if (nh) { const p = clamp(c.placenta ?? 0); nh.style.opacity = n1(.25 + .75 * p); const k = clamp(c.clamp ?? 0);
+      clamp1.setAttribute('transform', `translate(0 ${n1(6 * k)})`); clamp2.setAttribute('transform', `translate(0 ${n1(-6 * k)})`); clamp1.parentNode.style.opacity = n1(.35 + .65 * k); }
+    if (vh) vh.style.fill = mix((F.vsd || 0) >= 0 ? S.rv ?? .6 : S.lv ?? .97);
+    if (jaws) { const s = clamp(c.rvot ?? 0), gap = 13 * (1 - .85 * s), [px, py] = jaws.P, [qx, qy] = jaws.q;
+      jaws.forEach(({ j, sd }) => { const d = sd * (gap / 2 + 5); j.setAttribute('transform', `translate(${n1(px + qx * d)} ${n1(py + qy * d)}) rotate(28)`); }); }
+    if (leg) { const k = clamp(c.svr ?? 0), H = [430, 328], A = -80 * k * Math.PI / 180, B = A + 150 * k * Math.PI / 180; // gập háng 80°, gập gối 150°
+      const K = [H[0] + 60 * Math.cos(A), H[1] + 60 * Math.sin(A)], F2 = [K[0] + 54 * Math.cos(B), K[1] + 54 * Math.sin(B)];
+      const ln = (e, a, b) => { e.setAttribute('x1', n1(a[0])); e.setAttribute('y1', n1(a[1])); e.setAttribute('x2', n1(b[0])); e.setAttribute('y2', n1(b[1])); };
+      ln(leg.th, H, K); ln(leg.sh, K, F2); leg.ft.setAttribute('transform', `translate(${n1(F2[0])} ${n1(F2[1])}) rotate(${n1(B * 180 / Math.PI)})`);
+      const ox = Math.sin(A) * 4, oy = -Math.cos(A) * 4, ad = `M388 322C392 332 410 334 ${n1(H[0] + ox)} ${n1(H[1] + oy)}L${n1(K[0] + ox)} ${n1(K[1] + oy)}`;
+      leg.art.setAttribute('d', ad); leg.af.setAttribute('d', ad); leg.art.style.stroke = mix(vs.fem); leg.af.style.stroke = `color-mix(in srgb, ${mix(vs.fem)} 40%, #fff)`;
+      leg.art.setAttribute('stroke-width', n1(5 - 2.5 * k)); setFlow(leg.af, (F.body ?? 1) * (1 - .6 * k));
+      leg.kink.setAttribute('d', k > .2 ? `M422 ${n1(312 - 2 * k)}l7 7M436 ${n1(312 - 2 * k)}l-7 7` : ''); leg.kink.style.opacity = n1(k);
+      leg.grip.setAttribute('cx', n1(K[0])); leg.grip.setAttribute('cy', n1(K[1])); leg.lab.textContent = k > .5 ? 'Gập háng → gập ĐM đùi' : 'Kéo gối lên';
+      leg.lab.setAttribute('x', n1(k > .5 ? 494 : K[0])); leg.lab.setAttribute('y', n1(k > .5 ? 300 : K[1] - 20)); }
     upd(v);
   } };
 };

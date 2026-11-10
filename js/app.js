@@ -112,6 +112,8 @@ const mountBeat = (root, b, opt) => {
     else if (y < 24 && fig.classList.contains('mini')) { fig.classList.remove('mini'); fig.style.marginBottom = ''; } };
   fig.addEventListener('click', () => { if (fig.classList.contains('mini')) root.scrollTo({ top: 0, behavior: 'smooth' }); });
   // Kéo / ấn giữ trực tiếp trên hình (ui.drag: [{k, box:[x0,y0,x1,y1], r:[min,max], axis, step, f, hold(ms), up}])
+  // tay nắm trục x: vẫn cuộn dọc được trên điện thoại; có tay nắm trục y thì SVG giữ trọn cử chỉ
+  if (u.drag) svg.style.touchAction = u.drag.some(d => d.axis === 'y') ? 'none' : 'pan-y';
   const toSvg = e => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse()); return [q.x, q.y]; };
   let dg = null, hr = 0;
   const move = e => { const [x, y] = toSvg(e), D = dg, bx = D.box, t = Math.max(0, Math.min(1, D.axis === 'y' ? (bx[3] - y) / (bx[3] - bx[1]) : (x - bx[0]) / (bx[2] - bx[0])));
